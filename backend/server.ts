@@ -37,7 +37,7 @@ wss.on('connection', (client, req) =>
     if (id) {
         const connectedGame: IConnectedGame = {
             id,
-            gameState: new GameState([], false, undefined),
+            gameState: new GameState([['', '', ''], ['', '', ''], ['', '', '']], false, undefined),
             playerOne: new Player('1', 'red', 'Player 1'),
             playerTwo: new Player('2', 'blue', 'Player 2'),
             socket: client
