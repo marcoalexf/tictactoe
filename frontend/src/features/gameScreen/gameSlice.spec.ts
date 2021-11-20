@@ -7,18 +7,18 @@ import counterReducer, {
 describe('counter reducer', () => {
   const initialState: GameState = {
     currentPlayer: 'X',
-    gameBoard: ['', '', '', '', '', '', '', '', ''],
+    gameTable: [['', '', ''], ['', '', ''], ['', '', '']],
     gameOver: false,
     winner: undefined,
+    numberOfMoves: 0,
   };
 
   it('should put an x in the first square', () => {
     const playerMove: IPlayerMove = {
-      playerId: '1',
-      playerNumber: 1,
-      move: 0,
+      moveCol: 0,
+      moveRow: 0,
     }
     const actual = counterReducer(initialState, makeMove(playerMove));
-    expect(actual.gameBoard).toEqual(['X', '', '', '', '', '', '', '', '']);
+    expect(actual.gameTable).toEqual(['X', '', '', '', '', '', '', '', '']);
   });
 });

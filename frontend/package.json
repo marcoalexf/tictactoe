@@ -17,14 +17,17 @@
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
     "@types/react-redux": "^7.1.7",
+    "concurrently": "^6.4.0",
+    "nodemon": "^2.0.15",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-redux": "^7.2.0",
     "react-scripts": "4.0.3",
-    "typescript": "~4.1.5"
+    "typescript": "~4.1.5",
+    "ws": "^8.2.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "concurrently \"cd ../backend/ && yarn start\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -45,6 +48,7 @@
     ]
   },
   "devDependencies": {
-    "@types/mocha": "^9.0.0"
+    "@types/mocha": "^9.0.0",
+    "@types/ws": "^8.2.0"
   }
 }

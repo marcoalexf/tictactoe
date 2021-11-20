@@ -8,6 +8,7 @@ import { EVENT_TYPES } from './consts/consts';
 import { IConnectedGame } from './models/IConnectedGame.interface';
 import { Player } from './models/Player';
 import { GameState } from './models/GameState';
+import { IGameState } from './models/IGameState.interface';
 
 const app = express();
 const PORT = 8080;
@@ -24,7 +25,7 @@ const connectedClients: IConnectedClients = {};
 
 app.post('/broadcast', (req, res) => {
     console.log('> > > < < < Forcing broadcast to all connected clients > > > < < <');
-    broadcast(req.body);
+    broadcast(req.body, true);
     res.status(200).send();
 });
 
@@ -49,10 +50,15 @@ wss.on('connection', (client, req) =>
     }
 });
 
-const broadcast = (message: any) => {
-    const broadcastMessage: ISocketMessage<any> = {
-        type: EVENT_TYPES.BROADCAST,
-        payload: message
+const broadcast = (message: any, forced = false) => {
+    let broadcastMessage: ISocketMessage<any>;
+    if (forced) {
+        broadcastMessage = {
+            type: EVENT_TYPES.BROADCAST,
+            payload: message
+        }
+    } else {
+        broadcastMessage = message;
     }
 
     const currentlyConnectedClients = Object.keys(connectedClients);
@@ -62,12 +68,35 @@ const broadcast = (message: any) => {
     });
 }
 
+const handleGameLogic = (gameId: string, payload: ISocketMessage<string[][]>) => {
+    switch (payload.type) {
+        case EVENT_TYPES.PLAYER_MOVED:
+            console.log('new move!', payload.payload);
+            const game = connectedClients[gameId];
+            connectedClients[gameId].gameState = {
+                ...game.gameState,
+                gameTable: payload.payload!,
+                numberOfMoves: game.gameState.numberOfMoves + 1,
+            }
+            const GAME_UPDATE_COMMAND: ISocketMessage<IGameState> = {
+                type: 'GAME_UPDATE_COMMAND',
+                payload: game.gameState
+            }
+            game.socket.send(JSON.stringify(GAME_UPDATE_COMMAND))
+            break;
+        default:
+            console.log('invalid client command');
+            break;
+    }
+}
+
 const registerListenersForClient = (id: string) =>
 {
     console.log(`registering listeners for client: ${id}`);
     const client = connectedClients[id].socket;
     client.on('message', (message) => {
-        console.log(`${id} sent: ${message}`);
+        const parsedMessage: ISocketMessage<string[][]> = JSON.parse(message.toString());
+        handleGameLogic(id, parsedMessage);
     });
 }
 

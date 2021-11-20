@@ -5,11 +5,14 @@ import App from './App';
 import { store } from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
+import { WSProvider } from './providers/WS.provider';
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <WSProvider>
+        <App />
+      </WSProvider>
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

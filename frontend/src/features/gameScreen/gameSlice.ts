@@ -1,10 +1,13 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState, AppThunk } from '../../app/store';
+import { EVENT_TYPES } from '../../consts/consts';
 import { IPlayerMove } from '../../models/IPlayerMove.interface';
+import { ISocketMessage } from '../../models/ISocketMessage.interface';
+import { WSService } from '../../services/WS.service';
 import { fetchCount } from './gameApi';
 
 export interface GameState {
-  gameBoard: string[][];
+  gameTable: string[][];
   gameOver: boolean;
   winner: string | undefined;
   currentPlayer: 'X' | 'O';
@@ -12,7 +15,7 @@ export interface GameState {
 }
 
 const initialState: GameState = {
-  gameBoard: [['', '', ''], ['', '', ''], ['', '', '']],
+  gameTable: [['', '', ''], ['', '', ''], ['', '', '']],
   gameOver: false,
   winner: undefined,
   currentPlayer: 'X',
@@ -35,18 +38,27 @@ export const gameSlice = createSlice({
   reducers: {
     makeMove: (state, action: PayloadAction<IPlayerMove>) => {
       const { moveRow, moveCol } = action.payload;
-      if (state.gameBoard[moveRow][moveCol] === '') {
-        state.gameBoard[moveRow][moveCol] = state.currentPlayer;
+      if (state.gameTable[moveRow][moveCol] === '') {
+        state.gameTable[moveRow][moveCol] = state.currentPlayer;
         state.currentPlayer = state.currentPlayer === 'X' ? 'O' : 'X';
         state.numberOfMoves += 1;
+        const message: ISocketMessage<string[][]> = {
+          type: EVENT_TYPES.PLAYER_MOVED,
+          payload: state.gameTable
+        }
+        WSService.getInstance().sendMessage(message);
       }
     },
     restartGame: (state) => {
       state.currentPlayer = initialState.currentPlayer;
-      state.gameBoard = initialState.gameBoard;
+      state.gameTable = initialState.gameTable;
       state.gameOver = initialState.gameOver;
       state.numberOfMoves = initialState.numberOfMoves;
       state.winner = initialState.winner;
+    },
+    serverGameUpdate: (state, payload: PayloadAction<GameState>) => {
+      debugger;
+      state = payload.payload;
     }
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
@@ -58,10 +70,10 @@ export const gameSlice = createSlice({
   },
 });
 
-export const { makeMove, restartGame } = gameSlice.actions;
+export const { makeMove, restartGame, serverGameUpdate } = gameSlice.actions;
 
 export const selectCurrentPlayer = (state: RootState) => state.game.currentPlayer;
-export const selectCurrentGameBoard = (state: RootState) => state.game.gameBoard;
+export const selectCurrentGameBoard = (state: RootState) => state.game.gameTable;
 export const selectIsGameOver = (state: RootState) => state.game.gameOver === true;
 export const selectWinner = (state: RootState) => state.game.winner;
 export const selectNumberOfMoves = (state: RootState) => state.game.numberOfMoves;
